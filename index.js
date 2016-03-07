@@ -12,8 +12,8 @@ var defaultMerge         = require('./lib/merge'),
     test                 = require('./lib/test');
 
 /**
- * Create a factory that uses the given parent collection.
- * Primarily to avoid exposing the `parentCollection` as a parameter of `webpackMultiConfigurator()`.
+ * Create a lexical scope that uses the given parent collection.
+ * Primarily to avoid exposing the `parentCollection` as a parameter of the returned `webpackMultiConfigurator()`.
  * @param {object} [parentCollection] An optional definition collection to inherit
  * @returns {function():{create:function,define:function,include:function,exclude:function,otherwise:function,
  * resolve:function}}
