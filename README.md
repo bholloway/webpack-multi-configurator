@@ -181,6 +181,8 @@ Where the `mixin*` are functions defined elsewhere.
 
 In this case the definition of `foo` includes all operations from the definition of `common`.
 
+If `common` were used in isolation its own generator would be used. However in the context of `foo` the `common` generator is redundant with the configurator comming from `foo`. 
+
 While the operations in each definition are guaranteed unique, there is **not** a check for duplication when definitions are combined in this way.
 
 In the example there is no generator function specified for `foo`. Should `foo` specify a generator that returns multiple configurators then each would follow identical (but separate) paths as shown.
