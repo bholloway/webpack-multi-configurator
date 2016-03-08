@@ -118,7 +118,7 @@ Where the `generator` and `mixin*` are functions defined elsewhere.
 
 Imagine that the given `generator` returns 3 `webpack-configurator` instances, the defined operations will be applied seperately to all 3 configurators.
 
-![](./doc/operations.svg)
+![](./doc/operations.svg?raw=true)
 
 A definition is begun with `define()`, after which it supports the methods:
 
@@ -177,7 +177,7 @@ Consider the more complex example:
 
 Where the `mixin*` are functions defined elsewhere.
 
-![](./doc/common.svg)
+![](./doc/common.svg?raw=true)
 
 In this case the definition of `foo` includes all operations from the definition of `common`.
 
