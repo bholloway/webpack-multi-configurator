@@ -56,7 +56,7 @@ module.exports = function (configurator, options) {
 
 ## Creation
 
-**`function webpackMultiConfigurator(defaultOpts:object, factory:function, merge:function)`**
+**`webpackMultiConfigurator(defaultOpts:object, factory:function, merge:function)`**
 
 The **default options** are important because any property that has a default value may be parsed from an environment variable (see create).
 
