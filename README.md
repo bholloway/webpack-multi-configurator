@@ -59,9 +59,9 @@ module.exports = function (configurator, options) {
 }
 ```
 
-### Extensibility
-
-Strictly speaking, definition and inclusion may be placed in in any order. So a delegate module may define your Webpack build system and the project being built may still redefine it.
+Strictly speaking, definition and inclusion may be placed in in any order allowing **extensibility**.
+ 
+A common use-case is for a delegate module to feature the `define` statements and a project being built to add the remainder. That project may also extend any of the definitions that the delegate has made.
 
 ## Creation
 
