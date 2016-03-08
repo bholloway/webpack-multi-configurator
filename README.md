@@ -10,13 +10,18 @@ However, sometimes you will be be managing an array of configurators for Webpack
 
 There are a number of use cases - You may be compiling a number of similar applications in the one project, or want to watch and rebuild both your application and your test code with one script.
 
-Each compiler configuration may share similarities and you will want to share aspects between them.
+Each compiler configuration may share similarities and you will want to compose using shared coded.
 
 ## Usage
 
-### Example
+There are 2 stages to creating and consuming a configuration.
 
-The following is a example where `app` and `test` both share `common`:
+1. Make some **definitions**, which may reference each other.
+2. **Include** some of those definitions and **resolve** an Array of Webpack configuration objects.
+
+It is typical that **between these steps** a child instance is **create**d from the parent instance. This allows the original instance to specify default options and the child instance to merge actual options over the top.
+
+The following is a example where `app` and `test` both share `common`.
 
 In `example.js`:
 
@@ -38,7 +43,7 @@ module.exports = webpackMultiConfigurator(DEFAULT_OPTIONS)
     .append(require('./test'))
     .append('common')
 	
-  .create(process.env, ...)   // apply actual options
+  .create(process.env, ...)   // inherit and apply actual options
   
   .include(process.env.MODE)  // run app|test depending on environment variable
   .otherwise('app+test')	  // otherwise run both
@@ -54,9 +59,17 @@ module.exports = function (configurator, options) {
 }
 ```
 
+### Extensibility
+
+Strictly speaking, definition and inclusion may be placed in in any order. So a delegate module may define your Webpack build system and the project being built may still redefine it.
+
 ## Creation
 
-**`webpackMultiConfigurator(defaultOpts:object, factory:function, merge:function)`**
+### Initialisation
+
+```javascript
+function webpackMultiConfigurator(defaultOpts:object, configuratorFactory:function, merge:function)
+```
 
 The **default options** are important because any property that has a default value may be parsed from an environment variable (see create).
 
@@ -64,28 +77,34 @@ The **configurator factory** function is a way to add additional functionality t
 
 The **merge** function is used to merge options. It is typically omitted since the in-built merge function permits parsing of **environment variables** (see create).
 
-**`create(...)`**
+### Creation
 
-The create method creates an instance that inherits the definitions from the parent instance. Interitance is by copy, so changes to either child or parent will not mutate the other.
+```javascript
+function create(...optionsOrFactory:object|function)
+```
 
-Arguments may be any number of **options** hashes, or a configurator **factory** method. The options are merged with the options of the parent and the factory will be passed the factory of the parent.
+The create method creates an instance that inherits the definitions from the parent instance. Interitance is a simple copy, so changes to either child or parent will not mutate the other.
+
+Arguments may be any number of **options** hashes, or a configurator **factory** method.
+
+The options are merged with the options of the parent and the new factory will be passed the factory of the parent.
 
 ### Environment Variables
 
-In initial example, the full `process.env` was passed to the `create()` function.
+In the example, the full `process.env` was passed to the `create()` function.
 
 Options may be parsed from **environment variables** so long as:
-* The option key is fully uppercase; and,
-* The value of the option has been previously initialised to any `boolean|number|string`  by way of `defaultOpts` or parent `create()` call; and,
-* Underscore is used only to indicate camel-case, and double underscore is used only to indicate nesting.
-
-The option `SOME_PROP` will actually set the field `someProp`. And the environement variable `SOME__NESTED__PROP` will set the field `some.nested.prop`.
+* The default `merge` function is used (see initialisation above)
+* The **key** of the option is fully uppercase
+* The **value** of the option has been previously initialised to any `boolean|number|string`  by way of initialisation or `create()` call
+* An underscore character in the key indicates the camel-case option field. So the option `SOME_PROP` will actually set the field `someProp`.
+* A double underscore in the key indicates a nested option field. So the option `SOME__NESTED__PROP` will set the field `some.nested.prop`.
 
 ## Definition
 
 Any given multi-configurator is composed of a number of definitions, essentually a generator followed by a sequence of operations.
 
-The example:
+For example:
 
 ```javascript
 .define('foo')
@@ -97,7 +116,7 @@ The example:
 
 Where the `generator` and `mixin*` are functions defined elsewhere.
 
-In the case that the generator returns 3 elements, the structure will be:
+Imagine that the given `generator` returns 3 `webpack-configurator` instances, the defined operations will be applied seperately to all 3 configurators.
 
 ![](./doc/operations.svg)
 
@@ -110,6 +129,8 @@ A definition is begun with `define()`, after which it supports the methods:
 
 The `mixin` may be single element or an Array thereof. We use the term **operation** and **mixin** interchangably to represent a mutation of the `webpack-configurator` instance.
 
+To end a definition simply start a different `define()` or call any of the other top-level functions.
+
 All methods are chainable.
 
 ### Generator
@@ -117,10 +138,12 @@ All methods are chainable.
 The defined sequence is fed with `webpack-configurator` instances, created by a **generator**.
 
 ```javascript
-function generatorFn(factoryFn():configurator, options:object):configurator|Array.<configurator>
+function generator(factoryFn():configurator, options:object):configurator|Array.<configurator>
 ```
 
-The generator is passed a **factory function** which will yeild a `webpack-configurator` when called. Normally the generator may be omitted and the factory function will generate a single instance.
+The generator is passed a **factory function** which will yeild a `webpack-configurator` when called. It may be customised at initialisation or by calling `create()`.
+
+If the generator is omitted the factory function will be used internally to generate a single instance.
 
 If your project needs to compile several similar applications then it makes sense to have a generator which will return an Array of configurators, one for each application.
 
@@ -131,7 +154,7 @@ In the given example the generator is returning an Array of 3 configurators.
 These configurators will each take independent but identical paths through the defined **operations**.
 
 ```javascript
-function opeartionFn(config:configurator, options:object):configurator
+function opeartion(config:configurator, options:object):configurator
 ```
 
 Each is passed a configurator instance and is expected to return a configurator instance. Typically it will mutate and return the same instance. If it does not return anything then the input instance will be carried forward.
