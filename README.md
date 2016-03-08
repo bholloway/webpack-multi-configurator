@@ -64,7 +64,7 @@ The **configurator factory** function is a way to add additional functionality t
 
 The **merge** function is used to merge options. It is typically omitted since the in-built merge function permits parsing of **environment variables** (see create).
 
-** `create(...)`**
+**`create(...)`**
 
 The create method creates an instance that inherits the definitions from the parent instance. Interitance is by copy, so changes to either child or parent will not mutate the other.
 
