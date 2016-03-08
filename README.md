@@ -65,7 +65,7 @@ Strictly speaking, definition and inclusion may be placed in in any order. So a 
 
 ## Creation
 
-### Initialisation
+### Initialise
 
 ```javascript
 function webpackMultiConfigurator(defaultOpts:object, configuratorFactory:function, merge:function)
@@ -77,7 +77,7 @@ The **configurator factory** function is a way to add additional functionality t
 
 The **merge** function is used to merge options. It is typically omitted since the in-built merge function permits parsing of **environment variables** (see create).
 
-### Creation
+### Create
 
 ```javascript
 function create(...optionsOrFactory:object|function)
@@ -191,26 +191,26 @@ Once you have some definitions you will want to resolve them to some useful list
 
 To do this there are a number of methods:
 
-**`.include(name:string)`**
+* **`.include(name:string)`**
 
-Include a named definition. Any non-alphanumberic character may be used to join names so that several may be specified.
+	Include a named definition. Any non-alphanumberic character may be used to join names so that several may be specified.
 
-For example, `foo+bar` will include the definition of both `foo` and `bar`.
+	For example, `foo+bar` will include the definition of both `foo` and `bar`.
 
-**`.exclude(name:string)`**
+* **`.exclude(name:string)`**
 
-Exclude a named definition. Any non-alphanumberic character may be used to join names so that several may be specified.
+	Exclude a named definition. Any non-alphanumberic character may be used to join names so that several may be specified.
 
-For example, `foo+bar` will exclude the definition of both `foo` and `bar`.
+	For example, `foo+bar` will exclude the definition of both `foo` and `bar`.
 
-Order is important. Including, then excluding, then including a definition will result in it being included.
+	Order is important. Including, then excluding, then including a definition will result in it being included.
 
-**`.otherwise(name:string)`**
+* **`.otherwise(name:string)`**
 
-Definitions to use when none are included. Any non-alphanumberic character may be used to join names so that several may be specified.
+	Definitions to use when none are included. Any non-alphanumberic character may be used to join names so that several may be specified.
 
-**`.resolve()`**
+* **`.resolve()`**
 
-Commits the inclusions and processes definitions, resulting in a list of `webpack-configurator` instances.
+	Commits the inclusions and processes definitions, resulting in a list of `webpack-configurator` instances.
 
-The `resolve()` method is then called on each `webpack-configurator` to bake it into a Webpack configuration object.
+	The `resolve()` method is then called on each `webpack-configurator` to bake it into a Webpack configuration object.
