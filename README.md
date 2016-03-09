@@ -151,7 +151,7 @@ For example:
 
 ```javascript
 webpackMultiConfigurator(...)
-  .define('app)
+  .define('app')
     .generate(appGenerator);
 
 function appGenerator(factory, options) {
@@ -185,7 +185,7 @@ For example:
 
 ```javascript
 webpackMultiConfigurator(...)
-  .define('app)
+  .define('foo')
     .append(mixin);
 
 function mixin(configurator, options) {
