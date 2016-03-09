@@ -102,7 +102,7 @@ Options may be parsed from **environment variables** so long as:
 
 ## Definition
 
-Any given multi-configurator is composed of a number of definitions, essentually a generator followed by a sequence of operations.
+Any given multi-configurator is composed of a number of definitions, essentially a generator followed by a sequence of operations.
 
 For example:
 
@@ -120,18 +120,21 @@ Imagine that the given `generator` returns 3 `webpack-configurator` instances, t
 
 ![](./doc/operations.png?raw=true)
 
-A definition is begun with `define()`, after which it supports the methods:
+A definition is begun with `define(name:string)`. Where the `name` is comprised of **alpha-numeric characters** only.
 
+The returned object has all the members of the instance, along with additional methods that relate to the named definition:
+
+* `clear()`
 * `generate(generator:function)`
-* `append(mixin:function|string)`
-* `prepend(mixin:function|string)`
-* `splice(start:number, deleteCount:number, mixin:function|string)`
-
-The `mixin` may be single element or an Array thereof. We use the term **operation** and **mixin** interchangably to represent a mutation of the `webpack-configurator` instance.
-
-To end a definition simply start a different `define()` or call any of the other top-level functions.
+* `append(mixin:function|string|Array.<function|string>)`
+* `prepend(mixin:function|string|Array.<function|string>)`
+* `splice(start:number, deleteCount:number, mixin:function|string|Array.<function|string>)`
 
 All methods are chainable.
+
+The `mixin` may be single element or an Array. We use the term **operation** and **mixin** interchangably to represent a mutation of the `webpack-configurator` instance.
+
+To end a definition simply start a different `define()` or call any of the other top-level function.
 
 ### Generator
 
@@ -146,6 +149,8 @@ The generator is passed a **factory function** which will yeild a `webpack-confi
 The generator has the same signature as the factory function. So where the generator is omitted the factory function will be used in its place.
 
 If your project needs to compile several similar applications then it makes sense to specify a generator which will return an Array of configurators, one for each application.
+
+A `clear` will remove **both** the geneartor and operations.
 
 For example:
 
@@ -179,8 +184,6 @@ function opeartion(configurator:configurator, options:object):configurator
 
 Each is passed a configurator instance and is expected to return a configurator instance. Typically it will mutate and return the same instance. If it does not return anything then the input instance will be carried forward.
 
-Within each definition, operations are be unique. When there is repetition then the first instance is used.
-
 For example:
 
 ```javascript
@@ -195,6 +198,12 @@ function mixin(configurator, options) {
     });
 }
 ```
+
+Within each definition, operations are be unique. When there is repetition then the first instance is used.
+
+Operators may be `append()`ed, `prepend()`ed, and `splice()`d independent of the generator.
+
+A `clear` will remove **both** the geneartor and operations.
 
 ### Organisation
 

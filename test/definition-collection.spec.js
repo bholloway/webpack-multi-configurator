@@ -255,6 +255,12 @@ describe('definition-collection', function () {
       }
     }
 
+    function multipleGenerator(count) {
+      return function () {
+        return (new Array(count)).join(' ').split(' ').map(fakeConfigurator);
+      };
+    }
+
     function getSpy(id) {
       return jasmine.createSpy(id, function () {
           var idOrObjects = Array.prototype.slice.call(arguments)
@@ -276,7 +282,8 @@ describe('definition-collection', function () {
         common       : [getSpy('common.G'), getSpy('common.0'), getSpy('common.1')],
         dependent    : [getSpy('dependent.G'), getSpy('dependent.0'), 'common', getSpy('dependent.2')],
         badGenerator : [noop],
-        badDependency: [getSpy('generator'), 'baloney']
+        badDependency: [getSpy('generator'), 'baloney'],
+        multiple     : [multipleGenerator(3), getSpy('multiple.0'), 'common']
       };
       sut = invoke(owner, options, generator, parent)();
     });
@@ -340,6 +347,18 @@ describe('definition-collection', function () {
 
       it('should throw', function () {
         expect(() => sut.resolve('badDependency')).toThrowError();
+      });
+    });
+
+    describe('a sequence with multiple generation', function () {
+
+      beforeEach(function () {
+        sut.resolve('multiple');
+      });
+
+      it('should multiply sequences', function () {
+        expect(parent.multiple[1]).toHaveBeenCalledTimes(3);
+        expect(parent.common[1]).toHaveBeenCalledTimes(3);
       });
     });
   });
