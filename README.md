@@ -174,7 +174,7 @@ In the given example the generator is returning an Array of 3 configurators.
 These configurators will each take independent but identical paths through the defined **operations**.
 
 ```javascript
-function opeartion(config:configurator, options:object):configurator
+function opeartion(configurator:configurator, options:object):configurator
 ```
 
 Each is passed a configurator instance and is expected to return a configurator instance. Typically it will mutate and return the same instance. If it does not return anything then the input instance will be carried forward.
