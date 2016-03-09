@@ -138,14 +138,34 @@ All methods are chainable.
 The defined sequence is fed with `webpack-configurator` instances, created by a **generator**.
 
 ```javascript
-function generator(factoryFn():configurator, options:object):configurator|Array.<configurator>
+function generator(factory():configurator, options:object):configurator|Array.<configurator>
 ```
 
-The generator is passed a **factory function** which will yeild a `webpack-configurator` when called. It may be customised at initialisation or by calling `create()`.
+The generator is passed a **factory function** which will yeild a `webpack-configurator` when called. It may be customised at initialisation or by calling the `create()` method (see creation above).
 
-If the generator is omitted the factory function will be used internally to generate a single instance.
+The generator has the same signature as the factory function. So where the generator is omitted the factory function will be used in its place.
 
-If your project needs to compile several similar applications then it makes sense to have a generator which will return an Array of configurators, one for each application.
+If your project needs to compile several similar applications then it makes sense to specify a generator which will return an Array of configurators, one for each application.
+
+For example:
+
+```javascript
+webpackMultiConfigurator(...)
+  .define('app)
+    .generate(appGenerator);
+
+function appGenerator(factory, options) {
+  var compositions = [...];  // detect applications in your project
+  return compositions
+    .map((composition) => {
+      return factory()
+        .merge({
+          name: composition.name,
+          ...
+        });
+    });
+}
+```
 
 ### Operations
 
@@ -160,6 +180,21 @@ function opeartion(config:configurator, options:object):configurator
 Each is passed a configurator instance and is expected to return a configurator instance. Typically it will mutate and return the same instance. If it does not return anything then the input instance will be carried forward.
 
 Within each definition, operations are be unique. When there is repetition then the first instance is used.
+
+For example:
+
+```javascript
+webpackMultiConfigurator(...)
+  .define('app)
+    .append(mixin);
+
+function mixin(configurator, options) {
+  return configurator
+    .merge({
+      ...
+    });
+}
+```
 
 ### Organisation
 
@@ -179,9 +214,9 @@ Where the `mixin*` are functions defined elsewhere.
 
 ![](./doc/common.png?raw=true)
 
-In this case the definition of `foo` includes all operations from the definition of `common`.
+In this case the definition of `foo` includes all operations from the definition of `common`. The sequence is `foo's generator`, `B`, `X`, `Y`, `C`.
 
-If `common` were used in isolation its own generator would be used. However in the context of `foo` the `common` generator is redundant, the configurator comes from `foo`. 
+If `common` were used in isolation its own generator would be used. However in the context of `foo` the `common` generator is redundant, the configurator comes from `foo`.
 
 While the operations in each definition are guaranteed unique, there is **not** a check for duplication when definitions are combined in this way.
 
