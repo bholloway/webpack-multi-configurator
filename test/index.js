@@ -8,12 +8,12 @@ var instance = new Jasmine();
 
 /*jshint camelcase: false */
 instance.loadConfig({
-  spec_dir  : '.',
+  spec_dir  : 'test',
   spec_files: [
-    'test/**/*.spec.js'
+    '**/*.spec.js'
   ],
   helpers   : [
-    'test/**/*.helper.js'
+    '**/*.helper.js'
   ]
 });
 /*jshint camelcase: true */

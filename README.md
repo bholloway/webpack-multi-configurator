@@ -122,10 +122,10 @@ Imagine that the given `generator` returns 3 `webpack-configurator` instances, t
 
 A definition is begun with `define()`, after which it supports the methods:
 
-* `generate(generator)`
-* `append(mixin)`
-* `prepend(mixin)`
-* `splice(index, deleteCount, mixin)`
+* `generate(generator:function)`
+* `append(mixin:function|string)`
+* `prepend(mixin:function|string)`
+* `splice(start:number, deleteCount:number, mixin:function|string)`
 
 The `mixin` may be single element or an Array thereof. We use the term **operation** and **mixin** interchangably to represent a mutation of the `webpack-configurator` instance.
 
