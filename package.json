@@ -19,7 +19,7 @@
   },
   "homepage": "https://github.com/angularity/webpack-multi-configurator",
   "scripts": {
-    "test": "node ./jasmine.js"
+    "test": "istanbul cover -x \"**/test/*.*\" ./test/jasmine.js"
   },
   "dependencies": {
     "assert": "^1.3.0",
@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "figures": "^1.4.0",
+    "istanbul": "^0.4.2",
     "jasmine": "^2.4.1",
     "jasmine-spec-reporter": "^2.4.0"
   }
