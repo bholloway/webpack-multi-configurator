@@ -39,6 +39,49 @@ describe('definition-collection', function () {
     });
   });
 
+  describe('get()', function () {
+    const METHODS = ['clear', 'generate', 'prepend', 'append', 'splice'];
+    var owner, sut;
+
+    function get(name) {
+      return function () {
+        return invoke(owner, {}, noop)().get(name);
+      };
+    }
+
+    beforeEach(function () {
+      owner = {
+        ownerMethod: noop,
+        ownerProp  : 5
+      };
+    });
+
+    describe('permits only alphanumeric name', function () {
+      ['_123', 'abc_123', 'abc+', '', 123, true, undefined].forEach(function (name) {
+        it('should throw for ' + JSON.stringify(name), function () {
+          expect(get(name)).toThrow();
+        });
+      });
+    });
+
+    it('should contain methods ' + METHODS.join(', '), function () {
+      sut = get('foo')();
+
+      METHODS.forEach(function (name) {
+        expect(sut[name]).toEqual(jasmine.any(Function));
+      });
+    });
+
+    it('should contain the owner\'s enumerable members', function () {
+      sut = get('foo')();
+
+      Object.keys(owner)
+        .forEach(function (name) {
+          expect(sut[name]).toBe(owner[name]);
+        });
+    });
+  });
+
 });
 
 function invoke() {
