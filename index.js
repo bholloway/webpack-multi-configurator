@@ -33,6 +33,9 @@ function factory(parentCollection) {
    */
   function webpackMultiConfigurator(options, generatorFn, mergeFn) {
 
+    // ensure options
+    options = (typeof options === 'object') && options || {};
+
     // ensure generator function
     if (typeof generatorFn !== 'function') {
       generatorFn = defaultGenerator;
