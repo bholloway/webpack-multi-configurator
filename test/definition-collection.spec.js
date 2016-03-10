@@ -97,56 +97,49 @@ describe('definition-collection', function () {
           });
       });
 
-      it('should be initialised with the default generator', function () {
-        expect(value()[0]).toBe(generator);
-      });
-
       describe('generate()', function () {
-        var spy;
+        var generator;
 
         beforeEach(function () {
-          spy = jasmine.createSpy('generator');
+          generator = jasmine.createSpy('generator');
         });
 
-        it('should allow only functions', function () {
+        it('should allow only functions or omitted arguments', function () {
           [123, 'abc', {}, true].forEach(function (value) {
             expect(() => definition.generate(value)).toThrowError();
           });
+          expect(() => definition.generate(function () {
+          })).not.toThrowError();
+          expect(() => definition.generate()).not.toThrowError();
         });
 
         it('should install the supplied generator', function () {
-          definition.generate(spy);
+          definition.generate(generator);
           value()[0]();
-          expect(spy).toHaveBeenCalled();
-        });
-
-        it('should bind the supplied generator with the default generator', function () {
-          definition.generate(spy);
-          value()[0](options);
-          expect(spy).toHaveBeenCalledWith(generator, options);
+          expect(generator).toHaveBeenCalled();
         });
 
         it('should be chainable', function () {
-          expect(definition.generate(spy)).toBe(definition);
+          expect(definition.generate(generator)).toBe(definition);
         });
       });
 
       describe('clear()', function () {
 
         it('should clear any existing operations and custom generator', function () {
-          var spy = jasmine.createSpy('generator');
+          var generator = jasmine.createSpy('generator');
 
           // setup
-          definition.generate(spy);
+          definition.generate(generator);
           definition.append(['a', 'b', 'c']);
-          expect(spy).not.toHaveBeenCalled();
+          expect(generator).not.toHaveBeenCalled();
           value()[0]();
-          expect(spy).toHaveBeenCalled();
+          expect(generator).toHaveBeenCalled();
           expect(value().slice(1)).toEqual(['a', 'b', 'c']);
 
           // clear
           definition.clear();
-          expect(value()).toEqual([generator]);
+          expect(value()).toEqual([null]);
         });
 
         it('should be chainable', function () {
@@ -230,7 +223,13 @@ describe('definition-collection', function () {
         it('should splice at the given index', function () {
           expect(value().slice(1)).toEqual(['a', 'b', 'c']);
           definition.splice(0);
-          expect(value()).toEqual([generator]);
+          expect(value()).toEqual([null]);
+        });
+
+        it('should splice the given delete-count', function () {
+          expect(value().slice(1)).toEqual(['a', 'b', 'c']);
+          definition.splice(1, 1);
+          expect(value().slice(1)).toEqual(['a', 'c']);
         });
 
         it('should be chainable', function () {
@@ -252,13 +251,15 @@ describe('definition-collection', function () {
       };
     }
 
-    function getSpy(id) {
+    function getSpy(id, isExplicitReturn, returnValue) {
       return jasmine.createSpy(id, function () {
           var idOrObjects = Array.prototype.slice.call(arguments)
-            .map((obj) => obj._id || obj);
+            .map(function (candidate) {
+              return candidate._id || candidate;
+            });
           sequence.push(id);
           inputs.push(idOrObjects);
-          return fakeConfigurator(id);
+          return isExplicitReturn ? returnValue : fakeConfigurator(id);
         })
         .and.callThrough();
     }
@@ -272,9 +273,16 @@ describe('definition-collection', function () {
       parent = {
         common       : [getSpy('common.G'), getSpy('common.0'), getSpy('common.1')],
         dependent    : [getSpy('dependent.G'), getSpy('dependent.0'), 'common', getSpy('dependent.2')],
+        multiple     : [multipleGenerator(3), getSpy('multiple.0'), 'common'],
         badGenerator : [noop],
-        badDependency: [getSpy('generator'), 'baloney'],
-        multiple     : [multipleGenerator(3), getSpy('multiple.0'), 'common']
+        badDependency: [getSpy('badDependency.G'), 'baloney'],
+        opNull       : [getSpy('opNull.G'), getSpy('opNull.0', true, null), getSpy('opNull.1')],
+        opUndefined  : [getSpy('opUndefined.G'), getSpy('opUndefined.0', true, undefined), getSpy('opUndefined.1')],
+        opNumber     : [getSpy('opNumber.G'), getSpy('opNumber.0', true, 123), getSpy('opNumber.1')],
+        opTrue       : [getSpy('opTrue.G'), getSpy('opTrue.0', true, true), getSpy('opTrue.1')],
+        opFalse      : [getSpy('opFalse.G'), getSpy('opFalse.0', true, false), getSpy('opFalse.1')],
+        opObject     : [getSpy('opObject.G'), getSpy('opObject.0', true, {}), getSpy('opObject.1')],
+        opFunction   : [getSpy('opFunction.G'), getSpy('opFunction.0', true, noop), getSpy('opFunction.1')]
       };
       sut = invoke(owner, options, generator, parent)();
     });
@@ -290,11 +298,11 @@ describe('definition-collection', function () {
       });
 
       it('should pass the configurator of the previous step and options', function () {
-        expect(inputs).toEqual([[options], ['common.G', options], ['common.0', options]]);
+        expect(inputs).toEqual([[noop, options], ['common.G', options], ['common.0', options]]);
       });
 
       it('should have its generator invoked with options', function () {
-        expect(parent.common[0]).toHaveBeenCalledWith(options);
+        expect(parent.common[0]).toHaveBeenCalledWith(noop, options);
         expect(parent.dependent[0]).not.toHaveBeenCalled();
       });
     });
@@ -310,13 +318,13 @@ describe('definition-collection', function () {
       });
 
       it('should pass the configurator of the previous step and options', function () {
-        expect(inputs).toEqual([[options], ['dependent.G', options], ['dependent.0', options], ['common.0', options],
-          ['common.1', options]]);
+        expect(inputs).toEqual([[noop, options], ['dependent.G', options], ['dependent.0', options],
+          ['common.0', options], ['common.1', options]]);
       });
 
       it('should have its generator invoked with options', function () {
         expect(parent.common[0]).not.toHaveBeenCalled();
-        expect(parent.dependent[0]).toHaveBeenCalledWith(options);
+        expect(parent.dependent[0]).toHaveBeenCalledWith(noop, options);
       });
     });
 
@@ -338,6 +346,29 @@ describe('definition-collection', function () {
 
       it('should throw', function () {
         expect(() => sut.resolve('badDependency')).toThrowError();
+      });
+    });
+
+    describe('a sequence with a bad operator', function () {
+      ['opNull', 'opTrue', 'opFalse', 'opObject', 'opFunction'].forEach(function (name) {
+        it('should throw for value ' + name.slice(2).toLowerCase(), function () {
+          expect(() => sut.resolve(name)).toThrowError();
+        });
+      });
+    });
+
+    describe('a sequence with an operator that returns nothing', function () {
+
+      beforeEach(function () {
+        sut.resolve('opUndefined');
+      });
+
+      it('should execute in the expected order', function () {
+        expect(sequence).toEqual(['opUndefined.G', 'opUndefined.0', 'opUndefined.1']);
+      });
+
+      it('should pass the configurator of the previous step and options', function () {
+        expect(inputs).toEqual([[noop, options], ['opUndefined.G', options], ['opUndefined.G', options]]);
       });
     });
 

@@ -1,6 +1,6 @@
 {
   "name": "webpack-multi-configurator",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Use webpack-configurator for multi-compiler implementations",
   "main": "index.js",
   "repository": {
