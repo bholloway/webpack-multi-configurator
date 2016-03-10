@@ -1,13 +1,13 @@
 'use strict';
 
 var Configurator = require('webpack-configurator'),
-    assert       = require('assert'),
     flatten      = require('lodash.flattenDeep'),
     merge        = require('lodash.merge'),
     assign       = require('lodash.assign');
 
 var defaultMerge         = require('./lib/merge'),
     definitionCollection = require('./lib/definition-collection'),
+    includeCollection    = require('./lib/include-collection'),
     overrideGenerator    = require('./lib/override-generator'),
     test                 = require('./lib/test');
 
@@ -33,20 +33,6 @@ function factory(parentCollection) {
    */
   function webpackMultiConfigurator(options, generatorFn, mergeFn) {
 
-    // instance state
-    var includes = [],
-        defaults = [];
-
-    // instance API
-    var instance = {
-      create   : create,
-      define   : define,
-      include  : include,
-      exclude  : exclude,
-      otherwise: otherwise,
-      resolve  : resolve
-    };
-
     // ensure generator function
     if (typeof generatorFn !== 'function') {
       generatorFn = defaultGenerator;
@@ -59,8 +45,19 @@ function factory(parentCollection) {
     // ensure merge function
     mergeFn = (typeof mergeFn === 'function') && mergeFn || defaultMerge;
 
-    // create a definition collection that extends the parent
-    var collection = definitionCollection(instance, options, generatorFn, parentCollection);
+    // start with the include API
+    var instance = includeCollection();
+
+    // create a definition collection that extends the parent and can include the instance API
+    var definitions = definitionCollection(instance, options, generatorFn, parentCollection);
+
+    // extend the instance API
+    //  mutation ensures both collections get the changes
+    assign(instance, {
+      create : create,
+      define : definitions.get,
+      resolve: resolve
+    });
 
     // complete
     return instance;
@@ -86,68 +83,7 @@ function factory(parentCollection) {
       }
 
       // return a new instance and recreate definitions
-      return factory(collection)(mergedOptions, generatorFn, mergeFn);
-    }
-
-    /**
-     * Work with a configuration by name.
-     * @param {string} name The name of the configuration
-     */
-    function define(name) {
-      return assign({}, collection.get(name), instance);
-    }
-
-    /**
-     * Mark one or more definitions for inclusion when `resolve()` is later called.
-     * All given names must exists at the time of the call.
-     * Includes and excludes operate in order, any `include()` may possibly be excluded by a later `exclude()`.
-     * @param {...string} names Any number of names of existing definitions
-     * @returns The current instance
-     */
-    function include(names) {
-      names = validateNames(Array.prototype.slice.call(arguments));
-
-      // add to includes
-      includes.push.apply(includes, names);
-
-      // chainable
-      return instance;
-    }
-
-    /**
-     * Mark one or more definitions for exclusion when `resolve()` is later called.
-     * All given names must exists at the time of the call.
-     * Includes and excludes operate in order, any `exclude()` may possibly be included by a later `include()`.
-     * @param {...string} names Any number of names of existing definitions
-     * @returns The current instance
-     */
-    function exclude(names) {
-      names = validateNames(Array.prototype.slice.call(arguments));
-
-      // alter includes
-      includes = includes.filter(testNotExcluded);
-
-      // chainable
-      return instance;
-
-      function testNotExcluded(value) {
-        return (names.indexOf(value) < 0);
-      }
-    }
-
-    /**
-     * One or more definitions to include if node are explicitly included.
-     * @param {...string} names Any number of names of existing definitions
-     * @returns The current instance
-     */
-    function otherwise(names) {
-      names = validateNames(Array.prototype.slice.call(arguments));
-
-      // overwrite defaults
-      defaults = names;
-
-      // chainable
-      return instance;
+      return factory(definitions)(mergedOptions, generatorFn, mergeFn);
     }
 
     /**
@@ -156,36 +92,12 @@ function factory(parentCollection) {
      * @returns {Array.<object>}
      */
     function resolve() {
-      return flatten((includes.length ? includes : defaults).map(collection.resolve));
+      return flatten(instance.list().map(definitions.resolve));
     }
   }
 }
 
 module.exports = factory();
-
-function validateNames(list) {
-
-  // split concatenated strings
-  var names = list
-    .reduce(splitAndAccumulateStrings, []);
-
-  // validate names
-  //  names must be alphanumeric strings, possibly concatenated with character _|+|&
-  assert(names.every(test.isAlphanumericString),
-    'Includes must be named by a simple alphanumeric string, possibly concatenated with _|+|&');
-
-  // complete
-  return names;
-
-  function splitAndAccumulateStrings(accumulator, value) {
-    if (typeof value === 'string') {
-      return accumulator.concat(value.split(/[_\W]+/));
-    }
-    else {
-      return accumulator;
-    }
-  }
-}
 
 function defaultGenerator() {
   return new Configurator();
