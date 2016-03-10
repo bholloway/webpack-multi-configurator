@@ -3,8 +3,8 @@
 var includeCollection = require('../lib/include-collection');
 
 describe('include-collection', function () {
-  const ILLEGAL_NAMES = [123, true, ()=>undefined, {}, null, undefined, 'ab%cd'],
-        VALID_NAMES   = ['abc', 'ab&cd', 'ab+cd', 'ab_cd', '_abc', 'abc_', ['abc', 'ab&cd', 'ab+cd']];
+  const ILLEGAL_NAMES = [123, true, ()=>undefined, {}, null, 'ab%cd'],
+        VALID_NAMES   = ['abc', 'ab&cd', 'ab+cd', 'ab_cd', '_abc', 'abc_', ['abc', 'ab&cd', 'ab+cd'], undefined];
 
   var sut;
 
