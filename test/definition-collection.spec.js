@@ -1,6 +1,7 @@
 'use strict';
 
-var definitionCollection = require('../lib/definition-collection');
+var definitionCollection = require('../lib/definition-collection'),
+    fakeConfigurator     = require('./fake-configurator');
 
 const DEFAULT_NAME = 'foo',
       BAD_NAMES    = ['_123', 'abc_123', 'abc+', '', 123, true, undefined];
@@ -244,16 +245,6 @@ describe('definition-collection', function () {
   describe('resolve()', function () {
     var parent, sut;
     var sequence, inputs;
-
-    function fakeConfigurator(id) {
-      return ['merge', 'loader', 'removeLoader', 'plugin', 'removePlugin', 'resolve']
-        .reduce(fakeProp, {_id: id});
-
-      function fakeProp(object, key) {
-        object[key] = noop;
-        return object;
-      }
-    }
 
     function multipleGenerator(count) {
       return function () {
