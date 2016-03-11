@@ -1,23 +1,22 @@
 {
   "name": "webpack-multi-configurator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Use webpack-configurator for multi-compiler implementations",
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/angularity/webpack-multi-configurator.git"
+    "url": "git+https://github.com/bholloway/webpack-multi-configurator.git"
   },
   "keywords": [
     "webpack",
-    "solution",
-    "angularity"
+    "configuration"
   ],
   "author": "bholloway",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/angularity/webpack-multi-configurator/issues"
+    "url": "https://github.com/bholloway/webpack-multi-configurator/issues"
   },
-  "homepage": "https://github.com/angularity/webpack-multi-configurator",
+  "homepage": "https://github.com/bholloway/webpack-multi-configurator",
   "scripts": {
     "test": "istanbul cover -x \"test/*.*\" ./test/index.js"
   },
