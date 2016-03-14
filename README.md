@@ -253,7 +253,7 @@ To do this there are a number of methods:
 
 * **`.otherwise(name:string)`**
 
-	Definitions to use when none are included. Any non-alphanumberic character may be used to join names so that several may be specified.
+	Definitions to use when none are included. Any non-alphanumeric character may be used to join names so that several may be specified.
 
 * **`.resolve()`**
 
