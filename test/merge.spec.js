@@ -15,7 +15,8 @@ describe('merge', function () {
           c: false,
           d: {
             x: 11,
-            y: 12
+            y: 12,
+            $: true
           }
         }, {
           a: 2,
@@ -23,7 +24,8 @@ describe('merge', function () {
           c: true,
           d: {
             x: 21,
-            y: 22
+            y: 22,
+            $: false
           }
         }, {
           a: 3,
@@ -57,7 +59,8 @@ describe('merge', function () {
           c: true,
           d: {
             x: 21,
-            y: 22
+            y: 22,
+            $: false
           }
         }));
       });
@@ -88,7 +91,8 @@ describe('merge', function () {
           c: true,
           d: {
             x: 21,
-            y: 22
+            y: 22,
+            $: false
           }
         }));
       });
