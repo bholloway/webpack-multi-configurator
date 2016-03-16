@@ -5,7 +5,7 @@ var Configurator = require('webpack-configurator'),
     merge        = require('lodash.merge'),
     assign       = require('lodash.assign');
 
-var defaultMerge         = require('./lib/merge'),
+var defaultMerge         = require('merge-env'),
     definitionCollection = require('./lib/definition-collection'),
     includeCollection    = require('./lib/include-collection'),
     overrideGenerator    = require('./lib/override-generator'),
