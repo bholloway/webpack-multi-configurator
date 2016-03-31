@@ -7,7 +7,7 @@ var webpackMultiConfigurator = require('../index'),
 
 describe('webpack-multi-configurator', function () {
   var options = {a: 1};
-  var generator;
+  var factory;
 
   function getGenerator(id) {
     return jasmine.createSpy(id, function (factory, options) {
@@ -18,10 +18,10 @@ describe('webpack-multi-configurator', function () {
   }
 
   beforeEach(function () {
-    generator = getGenerator('generator1');
+    factory = getGenerator('factory1');
   });
 
-  describe('omitted generator function', function () {
+  describe('omitted factory function', function () {
     var sut, operation;
 
     beforeEach(function () {
@@ -33,51 +33,51 @@ describe('webpack-multi-configurator', function () {
         .include('foo');
     });
 
-    it('should call the default generator', function () {
+    it('should call the default factory', function () {
       sut.resolve();
       expect(operation).toHaveBeenCalledWith(jasmine.any(Config), options);
     });
   });
 
-  describe('explicit generator function', function () {
+  describe('explicit factory function', function () {
     var sut;
 
     beforeEach(function () {
-      sut = webpackMultiConfigurator(options, generator)
+      sut = webpackMultiConfigurator(options, factory)
         .define('foo')
         .include('foo');
     });
 
-    it('should be called with the default generator and options hash', function () {
+    it('should be called with the default factory and options hash', function () {
       sut.resolve();
-      expect(generator).toHaveBeenCalledWith(jasmine.any(Function), options);
+      expect(factory).toHaveBeenCalledWith(jasmine.any(Function), options);
     });
   });
 
-  describe('overridden generator function', function () {
-    var sut, generator1;
+  describe('overridden factory function', function () {
+    var sut, factory1;
 
     beforeEach(function () {
-      generator1 = generator;
-      sut = webpackMultiConfigurator(options, generator1)
+      factory1 = factory;
+      sut = webpackMultiConfigurator(options, factory1)
         .define('foo')
         .include('foo');
     });
 
-    it('should be called with the previous generator and options hash', function () {
-      var generator2 = getGenerator('generator2'),
-          generator3 = getGenerator('generator3'),
+    it('should be called with the previous factory and options hash', function () {
+      var factory2 = getGenerator('factory2'),
+          factory3 = getGenerator('factory3'),
           options2   = {b: 2},
           options3   = {b: 3, c: 3},
           optionsN   = {a: 1, b: 3, c: 3};
       sut
-        .create(generator2, options2)
-        .create(generator3, options3)
+        .create(factory2, options2)
+        .create(factory3, options3)
         .include('foo')
         .resolve();
 
-      [generator3, generator2, generator1].forEach(function (generator) {
-        expect(generator).toHaveBeenCalledWith(jasmine.any(Function), jasmine.objectContaining(optionsN));
+      [factory3, factory2, factory1].forEach(function (factory) {
+        expect(factory).toHaveBeenCalledWith(jasmine.any(Function), jasmine.objectContaining(optionsN));
       });
     });
   });

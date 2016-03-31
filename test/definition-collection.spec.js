@@ -7,7 +7,7 @@ const DEFAULT_NAME = 'foo',
       BAD_NAMES    = ['_123', 'abc_123', 'abc+', '', 123, true, undefined];
 
 describe('definition-collection', function () {
-  var owner, options, generator, parent, sut;
+  var owner, options, factory, parent, sut;
 
   beforeEach(function defaults() {
     owner = {
@@ -15,7 +15,7 @@ describe('definition-collection', function () {
       ownerProp  : 5
     };
     options = {};
-    generator = noop;
+    factory = noop;
     parent = undefined;
   });
 
@@ -29,7 +29,7 @@ describe('definition-collection', function () {
       expect(invoke({})).toThrow();
     });
 
-    it('should error when invoked without generator', function () {
+    it('should error when invoked without factory', function () {
       expect(invoke({}, {})).toThrow();
     });
 
@@ -43,7 +43,7 @@ describe('definition-collection', function () {
       expect(Object.keys(value)).toEqual([]);
     });
 
-    it('should copy the content of any given parent', function () {
+    it('should copy the members of any given parent', function () {
       var parent = {'a': [1, 2, 3]},
           sut    = invoke({}, {}, noop, parent)(),
           value  = sut.valueOf();
@@ -58,7 +58,7 @@ describe('definition-collection', function () {
 
     function get(name) {
       return function () {
-        sut = invoke(owner, options, generator, parent)();
+        sut = invoke(owner, options, factory, parent)();
         return sut.get(name);
       };
     }
@@ -97,11 +97,28 @@ describe('definition-collection', function () {
           });
       });
 
+      it('should contain proxied members of a default configurator instance', function () {
+        var configurator = fakeConfigurator('example');
+        options = {};
+        factory = jasmine.createSpy('factoryFn').and.returnValue(configurator);
+        definition = get(DEFAULT_NAME)();
+
+        expect(factory).toHaveBeenCalledWith(options);
+
+        ['merge', 'loader', 'removeLoader', 'plugin', 'removePlugin']
+          .forEach(function (name) {
+            expect(definition[name]).toEqual(jasmine.any(Function));
+            definition[name](1,2,3);
+            sut.resolve(DEFAULT_NAME);
+            expect(configurator[name]).toHaveBeenCalledWith(1, 2, 3);
+          });
+      });
+
       describe('generate()', function () {
-        var generator;
+        var factory;
 
         beforeEach(function () {
-          generator = jasmine.createSpy('generator');
+          factory = jasmine.createSpy('factory');
         });
 
         it('should allow only functions or omitted arguments', function () {
@@ -113,28 +130,28 @@ describe('definition-collection', function () {
           expect(() => definition.generate()).not.toThrowError();
         });
 
-        it('should install the supplied generator', function () {
-          definition.generate(generator);
+        it('should install the supplied factory', function () {
+          definition.generate(factory);
           value()[0]();
-          expect(generator).toHaveBeenCalled();
+          expect(factory).toHaveBeenCalled();
         });
 
         it('should be chainable', function () {
-          expect(definition.generate(generator)).toBe(definition);
+          expect(definition.generate(factory)).toBe(definition);
         });
       });
 
       describe('clear()', function () {
 
-        it('should clear any existing operations and custom generator', function () {
-          var generator = jasmine.createSpy('generator');
+        it('should clear any existing operations and custom factory', function () {
+          var factory = jasmine.createSpy('factory');
 
           // setup
-          definition.generate(generator);
+          definition.generate(factory);
           definition.append(['a', 'b', 'c']);
-          expect(generator).not.toHaveBeenCalled();
+          expect(factory).not.toHaveBeenCalled();
           value()[0]();
-          expect(generator).toHaveBeenCalled();
+          expect(factory).toHaveBeenCalled();
           expect(value().slice(1)).toEqual(['a', 'b', 'c']);
 
           // clear
@@ -245,7 +262,7 @@ describe('definition-collection', function () {
     var parent, sut;
     var sequence, inputs;
 
-    function multipleGenerator(count) {
+    function multipleFactory(count) {
       return function () {
         return (new Array(count)).join(' ').split(' ').map(fakeConfigurator);
       };
@@ -273,8 +290,8 @@ describe('definition-collection', function () {
       parent = {
         common       : [getSpy('common.G'), getSpy('common.0'), getSpy('common.1')],
         dependent    : [getSpy('dependent.G'), getSpy('dependent.0'), 'common', getSpy('dependent.2')],
-        multiple     : [multipleGenerator(3), getSpy('multiple.0'), 'common'],
-        badGenerator : [noop],
+        multiple     : [multipleFactory(3), getSpy('multiple.0'), 'common'],
+        badFactory   : [noop],
         badDependency: [getSpy('badDependency.G'), 'baloney'],
         opNull       : [getSpy('opNull.G'), getSpy('opNull.0', true, null), getSpy('opNull.1')],
         opUndefined  : [getSpy('opUndefined.G'), getSpy('opUndefined.0', true, undefined), getSpy('opUndefined.1')],
@@ -284,7 +301,7 @@ describe('definition-collection', function () {
         opObject     : [getSpy('opObject.G'), getSpy('opObject.0', true, {}), getSpy('opObject.1')],
         opFunction   : [getSpy('opFunction.G'), getSpy('opFunction.0', true, noop), getSpy('opFunction.1')]
       };
-      sut = invoke(owner, options, generator, parent)();
+      sut = invoke(owner, options, factory, parent)();
     });
 
     describe('a common sequence', function () {
@@ -301,7 +318,7 @@ describe('definition-collection', function () {
         expect(inputs).toEqual([[noop, options], ['common.G', options], ['common.0', options]]);
       });
 
-      it('should have its generator invoked with options', function () {
+      it('should have its factory invoked with options', function () {
         expect(parent.common[0]).toHaveBeenCalledWith(noop, options);
         expect(parent.dependent[0]).not.toHaveBeenCalled();
       });
@@ -322,7 +339,7 @@ describe('definition-collection', function () {
           ['common.0', options], ['common.1', options]]);
       });
 
-      it('should have its generator invoked with options', function () {
+      it('should have its factory invoked with options', function () {
         expect(parent.common[0]).not.toHaveBeenCalled();
         expect(parent.dependent[0]).toHaveBeenCalledWith(noop, options);
       });
@@ -335,10 +352,10 @@ describe('definition-collection', function () {
       });
     });
 
-    describe('a sequence with defective generator', function () {
+    describe('a sequence with defective factory', function () {
 
       it('should throw', function () {
-        expect(() => sut.resolve('badGenerator')).toThrowError();
+        expect(() => sut.resolve('badFactory')).toThrowError();
       });
     });
 

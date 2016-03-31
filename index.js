@@ -24,25 +24,25 @@ function factory(parentCollection) {
   /**
    * Create an instance.
    * The `options` are typically the default values.
-   * The `generatorFn` is used to create instances of `webpack-configurator` where requested.
+   * The `factoryFn` is used to create instances of `webpack-configurator` where requested.
    * The `mergeFn` is used to merge options with defaults whenever `create()` is called.
    * @param {object} [options] An optional hash of options
-   * @param {function} [generatorFn] An optional factory function that creates a webpack-configurator instance
+   * @param {function} [factoryFn] An optional factory function that creates a webpack-configurator instance
    * @param {function} [mergeFn] An optional function that merges options
    * @returns {{create:function,define:function,include:function,exclude:function,otherwise:function,resolve:function}}
    */
-  function webpackMultiConfigurator(options, generatorFn, mergeFn) {
+  function webpackMultiConfigurator(options, factoryFn, mergeFn) {
 
     // ensure options
     options = (typeof options === 'object') && options || {};
 
-    // ensure generator function
-    if (typeof generatorFn !== 'function') {
-      generatorFn = defaultGenerator;
+    // ensure factory function
+    if (typeof factoryFn !== 'function') {
+      factoryFn = defaultFactoryFn;
     }
-    // on the top-level instance any given generatorFn must inherit default generator
+    // on the top-level instance any given factoryFn must inherit the default
     else if (!parentCollection) {
-      generatorFn = overrideGenerator(generatorFn, defaultGenerator);
+      factoryFn = overrideGenerator(factoryFn, defaultFactoryFn);
     }
 
     // ensure merge function
@@ -52,7 +52,7 @@ function factory(parentCollection) {
     var instance = includeCollection();
 
     // create a definition collection that extends the parent and can include the instance API
-    var definitions = definitionCollection(instance, options, generatorFn, parentCollection);
+    var definitions = definitionCollection(instance, options, factoryFn, parentCollection);
 
     // extend the instance API
     //  mutation ensures both collections get the changes
@@ -74,19 +74,19 @@ function factory(parentCollection) {
     function create(/*...optsOrConfigurator*/) {
 
       // merge options
-      var flatArgs            = flatten(Array.prototype.slice.call(arguments)),
-          optionOverrides     = flatArgs.filter(test.isObject),
-          generatorOverrideFn = flatArgs.filter(test.isFunction).pop(),
-          optionsCopy         = merge({}, options),
-          mergedOptions       = mergeFn.apply(null, [optionsCopy].concat(optionOverrides));
+      var flatArgs          = flatten(Array.prototype.slice.call(arguments)),
+          optionOverrides   = flatArgs.filter(test.isObject),
+          factoryFnOverride = flatArgs.filter(test.isFunction).pop(),
+          optionsCopy       = merge({}, options),
+          mergedOptions     = mergeFn.apply(null, [optionsCopy].concat(optionOverrides));
 
-      // override the generator function but bind the existing generator function as an argument
-      if (generatorOverrideFn) {
-        generatorFn = overrideGenerator(generatorOverrideFn, generatorFn);
+      // override the factory function but bind the existing factory function as an argument
+      if (factoryFnOverride) {
+        factoryFn = overrideGenerator(factoryFnOverride, factoryFn);
       }
 
       // return a new instance and recreate definitions
-      return factory(definitions)(mergedOptions, generatorFn, mergeFn);
+      return factory(definitions)(mergedOptions, factoryFn, mergeFn);
     }
 
     /**
@@ -102,6 +102,6 @@ function factory(parentCollection) {
 
 module.exports = factory();
 
-function defaultGenerator() {
+function defaultFactoryFn() {
   return new Configurator();
 }

@@ -5,12 +5,9 @@ function fakeConfigurator(id) {
     .reduce(fakeProp, {_id: id});
 
   function fakeProp(object, key) {
-    object[key] = noop;
+    object[key] = jasmine.createSpy(id + '::' + key);
     return object;
   }
 }
 
 module.exports = fakeConfigurator;
-
-function noop() {
-}
