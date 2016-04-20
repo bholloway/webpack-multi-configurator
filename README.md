@@ -1,5 +1,10 @@
 # Webpack Multi Configurator
 
+[![NPM](https://nodei.co/npm/webpack-multi-configurator.png)](https://www.npmjs.com/package/webpack-multi-configurator)
+
+[![appveyor](https://ci.appveyor.com/api/projects/status/lhivjlaw9e31c5p2?svg=true)](https://ci.appveyor.com/project/bholloway/webpack-multi-configurator)
+[![travis](https://api.travis-ci.org/bholloway/webpack-multi-configurator.svg)](https://travis-ci.org/bholloway/webpack-multi-configurator)
+
 Use webpack-configurator for multi-compiler implementations
 
 ## Rationale
