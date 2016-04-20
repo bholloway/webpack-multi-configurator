@@ -205,6 +205,22 @@ Operators may be `append()`ed, `prepend()`ed, and `splice()`d independent of the
 
 A `clear` will remove **both** the geneartor and operations.
 
+#### Operator Short Form
+
+As a convenience, all the members of `webpack-configurator` are proxied on the definition.
+
+Single statements do not need a `mixin` function, allowing the above example to be condensed:
+
+```javascript
+webpackMultiConfigurator(...)
+  .define('foo')
+    .merge({
+      ...
+    });
+```
+
+If you supply a **configurator factory** (see above) and it augments the `webpack-configurator` then its additional methods will also be proxied.
+
 ### Organisation
 
 Consider the more complex example:

@@ -1,7 +1,7 @@
 'use strict';
 
 var Configurator = require('webpack-configurator'),
-    flatten      = require('lodash.flattenDeep'),
+    flatten      = require('lodash.flattendeep'),
     merge        = require('lodash.merge'),
     assign       = require('lodash.assign');
 
